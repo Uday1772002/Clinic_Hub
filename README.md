@@ -5,6 +5,7 @@ A comprehensive healthcare management application that enables clinic administra
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Role-Based Authentication**: JWT-based authentication with three roles (Admin, Doctor, Patient)
 - **Appointment Management**: Schedule, view, update, and cancel appointments
 - **Patient Medical Summaries**: Maintain comprehensive patient medical records
@@ -15,6 +16,7 @@ A comprehensive healthcare management application that enables clinic administra
 - **Audit Logging**: Track all changes to appointments and patient data
 
 ### Security Features
+
 - Secure password hashing with bcrypt
 - JWT token-based authentication
 - Role-based access control (RBAC)
@@ -23,11 +25,49 @@ A comprehensive healthcare management application that enables clinic administra
 - Input validation and sanitization
 
 ### Additional Features
+
 - Comprehensive API documentation with Swagger
 - Winston logging for application monitoring
 - Docker containerization for easy deployment
 - Unit tests for critical endpoints
 - MongoDB with Mongoose ODM
+
+## 🎨 Frontend Application
+
+A modern React-based user interface is now available in the `client/` directory!
+
+### Frontend Features:
+
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Real-Time Updates**: Instant notifications using WebSocket integration
+- **Role-Based UI**: Different interfaces for patients, doctors, and admins
+- **Modern UI/UX**: Built with React, Tailwind CSS, and Lucide icons
+- **State Management**: Efficient state handling with Zustand
+- **Toast Notifications**: User-friendly feedback for all actions
+
+### Quick Start (Full Stack):
+
+1. **Start the backend** (from project root):
+
+   ```bash
+   npm run dev
+   ```
+
+2. **Start the frontend** (in a new terminal):
+
+   ```bash
+   cd client
+   npm install --legacy-peer-deps
+   npm run dev
+   ```
+
+3. **Access the application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:6000
+   - API Docs: http://localhost:6000/api-docs
+
+For detailed frontend documentation, see [client/CLIENT_README.md](client/CLIENT_README.md)
+For a quick start guide, see [QUICKSTART.md](QUICKSTART.md)
 
 ## 📋 Requirements
 
@@ -40,22 +80,26 @@ A comprehensive healthcare management application that enables clinic administra
 ### Method 1: Local Setup
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd ClinicHub
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 ```
 
 Edit `.env` file with your configuration:
+
 ```env
 PORT=6000
 NODE_ENV=development
@@ -71,6 +115,7 @@ EMAIL_FROM=noreply@clinichub.com
 ```
 
 4. **Start the application**
+
 ```bash
 # Development mode with auto-reload
 npm run dev
@@ -82,21 +127,25 @@ npm start
 ### Method 2: Docker Setup
 
 1. **Build and run with Docker Compose**
+
 ```bash
 docker-compose up -d
 ```
 
 This will start:
+
 - MongoDB database on port 27017
 - ClinicHub API on port 6000
 - MongoDB Express (database UI) on port 8081
 
 2. **View logs**
+
 ```bash
 docker-compose logs -f clinichub-app
 ```
 
 3. **Stop services**
+
 ```bash
 docker-compose down
 ```
@@ -104,18 +153,21 @@ docker-compose down
 ## 📚 API Documentation
 
 Once the server is running, visit:
+
 - **Swagger UI**: http://localhost:6000/api-docs
 - **API Spec JSON**: http://localhost:6000/api-docs.json
 
 ## 🔑 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
 - `GET /api/auth/me` - Get current user profile
 - `PUT /api/auth/profile` - Update user profile
 
 ### Appointments
+
 - `POST /api/appointments` - Create appointment
 - `GET /api/appointments` - Get all appointments
 - `GET /api/appointments/:id` - Get appointment by ID
@@ -123,12 +175,14 @@ Once the server is running, visit:
 - `DELETE /api/appointments/:id` - Cancel appointment
 
 ### Patient Summaries
+
 - `GET /api/patients/:patientId/summary` - Get patient summary
 - `PUT /api/patients/:patientId/summary` - Update patient summary
 - `POST /api/patients/:patientId/summary/medications` - Add medication
 - `POST /api/patients/:patientId/summary/allergies` - Add allergy
 
 ### Visit Reports
+
 - `POST /api/visit-reports` - Create visit report
 - `GET /api/visit-reports` - Get all visit reports
 - `GET /api/visit-reports/:id` - Get visit report by ID
@@ -136,6 +190,7 @@ Once the server is running, visit:
 - `PUT /api/visit-reports/:id` - Update visit report
 
 ### Analytics
+
 - `GET /api/analytics/appointments` - Get appointment analytics
 - `GET /api/analytics/patients` - Get patient analytics
 - `GET /api/analytics/doctors/:doctorId` - Get doctor performance metrics
@@ -143,11 +198,13 @@ Once the server is running, visit:
 ## 🧪 Testing
 
 Run unit tests:
+
 ```bash
 npm test
 ```
 
 Run tests with coverage:
+
 ```bash
 npm test -- --coverage
 ```
@@ -155,12 +212,14 @@ npm test -- --coverage
 ## 🔌 WebSocket Events
 
 ### Incoming Events
+
 - `connection` - Establishes WebSocket connection
 - `join_room` - Join a specific room
 - `leave_room` - Leave a room
 - `request_appointment_status` - Request appointment status update
 
 ### Server Events
+
 - `connected` - Connection confirmation
 - `new_appointment` - New appointment created (to doctor)
 - `appointment_update` - Appointment status updated
@@ -171,6 +230,7 @@ npm test -- --coverage
 ## 👥 User Roles
 
 ### Admin
+
 - Manage all appointments
 - View analytics and reports
 - Create appointments for patients
@@ -178,6 +238,7 @@ npm test -- --coverage
 - Access all system features
 
 ### Doctor
+
 - View their appointments
 - Update appointment status
 - Add notes to appointments
@@ -186,6 +247,7 @@ npm test -- --coverage
 - View their performance metrics
 
 ### Patient
+
 - Create appointments
 - View their appointments
 - View their medical summary
@@ -195,6 +257,7 @@ npm test -- --coverage
 ## 📧 Email Notifications
 
 Email notifications are sent for:
+
 - New appointment scheduled
 - Appointment status updated
 - Appointment cancelled
@@ -204,12 +267,14 @@ Configure SMTP settings in `.env` file to enable email notifications.
 ## 📝 Logging
 
 The application uses Winston for logging with the following features:
+
 - Separate log files for errors and combined logs
 - Rotating log files (5MB max size, 5 files retained)
 - Console output in development mode
 - Structured JSON logging
 
 Log files are stored in the `logs/` directory:
+
 - `combined.log` - All logs
 - `error.log` - Error logs only
 
@@ -277,11 +342,13 @@ ClinicHub/
 ### Docker Deployment
 
 1. Build the image:
+
 ```bash
 docker build -t clinichub:latest .
 ```
 
 2. Run with docker-compose:
+
 ```bash
 docker-compose up -d
 ```
@@ -297,28 +364,33 @@ docker-compose up -d
 ## 📊 Database Schema
 
 ### Users Collection
+
 - Stores admin, doctor, and patient information
 - Includes authentication credentials
 - Role-based fields (specialization for doctors)
 
 ### Appointments Collection
+
 - Links patients with doctors
 - Tracks appointment status
 - Includes cancellation tracking
 
 ### Patient Summaries Collection
+
 - Medical history and allergies
 - Current medications
 - Chronic conditions
 - Emergency contacts
 
 ### Visit Reports Collection
+
 - Post-appointment medical reports
 - Diagnosis and prescriptions
 - Vital signs
 - Follow-up information
 
 ### Audit Logs Collection
+
 - Tracks all critical operations
 - Records user actions
 - IP address and timestamp logging
@@ -360,6 +432,7 @@ For support, email support@clinichub.com or create an issue in the repository.
 ## 📝 API Request/Response Examples
 
 ### Register User
+
 ```bash
 POST /api/auth/register
 Content-Type: application/json
@@ -391,6 +464,7 @@ Response:
 ```
 
 ### Create Appointment
+
 ```bash
 POST /api/appointments
 Cookie: token=<your_jwt_token>
@@ -423,6 +497,7 @@ Response:
 ```
 
 ### Get Analytics
+
 ```bash
 GET /api/analytics/appointments?startDate=2024-01-01&endDate=2024-12-31
 Cookie: token=<your_jwt_token>
