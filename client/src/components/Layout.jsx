@@ -107,11 +107,12 @@ export default function Layout() {
               <NavLink
                 key={item.name}
                 to={item.href}
+                onClick={() => setIsSidebarOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] ${
                     isActive
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-600 hover:bg-gray-50"
+                      ? "bg-blue-50 text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`
                 }
               >
@@ -123,12 +124,19 @@ export default function Layout() {
 
           {/* User section */}
           <div className="border-t p-4">
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2">
               <NavLink
                 to="/profile"
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors flex-1"
+                onClick={() => setIsSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive ? "bg-blue-50" : "hover:bg-gray-50"
+                  }`
+                }
               >
-                <UserIcon size={20} className="text-gray-600" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <UserIcon size={20} className="text-white" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {user?.firstName} {user?.lastName}
@@ -141,7 +149,7 @@ export default function Layout() {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <LogOut size={20} />
               <span className="font-medium">Logout</span>
@@ -153,21 +161,24 @@ export default function Layout() {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-white shadow-sm">
+        <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <Menu size={24} />
             </button>
             <div className="flex items-center space-x-4 ml-auto">
-              <span className="text-sm text-gray-600">
-                Welcome,{" "}
-                <span className="font-medium text-gray-900">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Welcome, </span>
+                <span className="text-sm font-semibold text-gray-900">
                   {user?.firstName}
                 </span>
-              </span>
+                <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full capitalize">
+                  {user?.role}
+                </span>
+              </div>
             </div>
           </div>
         </div>
