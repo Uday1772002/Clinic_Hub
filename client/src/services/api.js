@@ -25,13 +25,40 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore.getState().clearAuth();
-      window.location.href = "/login";
+    const status = error.response?.status;
+    const errorCode = error.response?.data?.code;
+
+    // Handle authentication errors
+    if (status === 401 || status === 403) {
+      const isLoginPage = window.location.pathname === "/login";
+      const isRegisterPage = window.location.pathname === "/register";
+
+      // Only redirect and clear auth if not already on auth pages
+      if (!isLoginPage && !isRegisterPage) {
+        if (
+          errorCode === "INVALID_TOKEN" ||
+          errorCode === "USER_NOT_FOUND" ||
+          errorCode === "NO_TOKEN"
+        ) {
+          useAuthStore.getState().clearAuth();
+          toast.error("Session expired. Please login again.");
+          window.location.href = "/login";
+        } else if (errorCode === "ACCOUNT_DEACTIVATED") {
+          useAuthStore.getState().clearAuth();
+          toast.error(error.response?.data?.message || "Account deactivated");
+          window.location.href = "/login";
+        } else {
+          toast.error(error.response?.data?.message || "Access denied");
+        }
+        return Promise.reject(error);
+      }
     }
 
+    // Show error message for other errors
     const message = error.response?.data?.message || "An error occurred";
-    toast.error(message);
+    if (!error.config?.skipErrorToast) {
+      toast.error(message);
+    }
     return Promise.reject(error);
   }
 );
