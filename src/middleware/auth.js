@@ -10,27 +10,54 @@ const authenticate = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "No token provided. Please authenticate."
+        message: "No token provided. Please authenticate.",
+        code: "NO_TOKEN",
       });
     }
 
     // Verify token
-    const decoded = verifyToken(token);
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch (error) {
+      logger.error("Token verification failed:", error.message);
+      // Clear invalid cookie
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token. Please login again.",
+        code: "INVALID_TOKEN",
+      });
+    }
 
     // Get user from database
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
+      // Clear cookie if user not found
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
       return res.status(401).json({
         success: false,
-        message: "User not found. Token invalid."
+        message: "User not found. Please login again.",
+        code: "USER_NOT_FOUND",
       });
     }
 
     if (!user.isActive) {
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
-        message: "User account is deactivated."
+        message: "Your account has been deactivated. Please contact support.",
+        code: "ACCOUNT_DEACTIVATED",
       });
     }
 
@@ -41,7 +68,8 @@ const authenticate = async (req, res, next) => {
     logger.error("Authentication error:", error.message);
     return res.status(401).json({
       success: false,
-      message: "Authentication failed. Invalid token."
+      message: "Authentication failed. Please try again.",
+      code: "AUTH_ERROR",
     });
   }
 };
@@ -52,7 +80,9 @@ const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. This action requires one of the following roles: ${roles.join(", ")}`
+        message: `Access denied. This action requires one of the following roles: ${roles.join(
+          ", "
+        )}`,
       });
     }
     next();
@@ -61,5 +91,5 @@ const authorize = (...roles) => {
 
 module.exports = {
   authenticate,
-  authorize
+  authorize,
 };
