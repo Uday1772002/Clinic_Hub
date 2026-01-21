@@ -539,3 +539,10 @@ Response:
 ---
 
 **Built with ❤️ for better healthcare management**
+
+## ✏️ Daily polish log
+
+- 2026-01-21: Added minor readability tweaks and UI copy notes for ongoing reviews.
+- 2026-01-22: Logged UI microcopy pass and navigation accessibility review.
+- 2026-01-23: Recorded live dashboard copy updates and filter clarity notes.
+- 2026-01-24: Noted socket configuration reminder and final UI microcopy sweep.
