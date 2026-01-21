@@ -26,6 +26,10 @@ export default function Patients() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+          <p className="mt-2 text-xs text-gray-500">
+            Quick tip: start typing a name or patient ID to narrow results;
+            advanced filters are planned next.
+          </p>
         </div>
       </div>
 
