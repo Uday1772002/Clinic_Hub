@@ -29,7 +29,11 @@ function PrivateRoute({ children, allowedRoles }) {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+      role="status"
+      aria-live="polite"
+    >
       <div className="text-center">
         <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
           <span className="text-white text-2xl font-bold">CH</span>
