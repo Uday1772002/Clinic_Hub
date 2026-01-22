@@ -82,6 +82,10 @@ export default function Dashboard() {
           Here's what's happening with your{" "}
           {user?.role === "patient" ? "appointments" : "clinic"} today.
         </p>
+        <p className="text-xs text-gray-500 mt-1">
+          Live updates flow in whenever appointments are created, updated, or
+          cancelled.
+        </p>
       </div>
 
       {/* Stats Cards - Only for doctors and admins */}
@@ -184,7 +188,7 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-500 mt-1">
                         {format(
                           new Date(appointment.appointmentDate),
-                          "MMM dd, yyyy"
+                          "MMM dd, yyyy",
                         )}{" "}
                         at {appointment.appointmentTime}
                       </p>
@@ -195,7 +199,7 @@ export default function Dashboard() {
                   </div>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      appointment.status
+                      appointment.status,
                     )}`}
                   >
                     {appointment.status}
