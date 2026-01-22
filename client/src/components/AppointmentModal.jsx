@@ -143,6 +143,10 @@ export default function AppointmentModal({ appointment, onClose, onSuccess }) {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Standard slots are 15-minute increments to keep schedules
+                predictable.
+              </p>
             </div>
 
             {appointment && (
