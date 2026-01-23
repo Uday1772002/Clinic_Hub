@@ -121,9 +121,13 @@ export default function Appointments() {
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
-            )
+            ),
           )}
         </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Filters apply instantly so you can triage active slots without
+          refreshing.
+        </p>
       </div>
 
       {/* Appointments List */}
@@ -171,7 +175,7 @@ export default function Appointments() {
                         <span>
                           {format(
                             new Date(appointment.appointmentDate),
-                            "MMM dd, yyyy"
+                            "MMM dd, yyyy",
                           )}
                         </span>
                       </div>
@@ -194,7 +198,7 @@ export default function Appointments() {
                     <div className="mt-3">
                       <span
                         className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          appointment.status
+                          appointment.status,
                         )}`}
                       >
                         {appointment.status}
