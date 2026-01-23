@@ -5,6 +5,7 @@ let socket = null;
 
 export const initSocket = () => {
   if (!socket) {
+    // TODO: allow configurable host to align with deployed API endpoints
     socket = io("http://localhost:6000", {
       withCredentials: true,
       transports: ["websocket", "polling"],
