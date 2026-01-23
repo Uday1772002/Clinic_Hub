@@ -18,7 +18,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor
@@ -27,6 +27,8 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const errorCode = error.response?.data?.code;
+
+    // Keep auth handling predictable: cookies carry the token and redirect only when needed
 
     // Handle authentication errors
     if (status === 401 || status === 403) {
@@ -60,7 +62,7 @@ api.interceptors.response.use(
       toast.error(message);
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Auth API
