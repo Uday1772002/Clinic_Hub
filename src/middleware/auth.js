@@ -4,7 +4,7 @@ const logger = require("../utils/logger");
 
 const authenticate = async (req, res, next) => {
   try {
-    // Get token from cookie only
+    // Get token from cookie only (stateless JWT auth without session store)
     const token = req.cookies.token;
 
     if (!token) {
