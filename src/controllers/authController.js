@@ -4,6 +4,7 @@ const logger = require("../utils/logger");
 const { createAuditLog } = require("../utils/auditLogger");
 
 // Helper function to create secure cookie options
+// Ensures httpOnly + secure + strict SameSite to prevent CSRF and XSS token theft
 const getCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
