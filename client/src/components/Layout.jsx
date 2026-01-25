@@ -80,22 +80,24 @@ export default function Layout() {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b">
+          <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold">CH</span>
               </div>
-              <span className="text-xl font-bold text-gray-800">ClinicHub</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                ClinicHub
+              </span>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-slate-400 hover:text-white transition-colors"
             >
               <X size={24} />
             </button>
@@ -111,8 +113,8 @@ export default function Layout() {
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] ${
                     isActive
-                      ? "bg-blue-50 text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                      : "text-slate-300 hover:bg-slate-700 hover:text-white"
                   }`
                 }
               >
@@ -123,25 +125,25 @@ export default function Layout() {
           </nav>
 
           {/* User section */}
-          <div className="border-t p-4">
+          <div className="border-t border-slate-700 p-4">
             <div className="mb-2">
               <NavLink
                 to="/profile"
                 onClick={() => setIsSidebarOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive ? "bg-blue-50" : "hover:bg-gray-50"
+                    isActive ? "bg-slate-700" : "hover:bg-slate-700"
                   }`
                 }
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
                   <UserIcon size={20} className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-white truncate">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">
+                  <p className="text-xs text-slate-400 capitalize">
                     {user?.role}
                   </p>
                 </div>
@@ -149,7 +151,7 @@ export default function Layout() {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <LogOut size={20} />
               <span className="font-medium">Logout</span>
@@ -161,22 +163,22 @@ export default function Layout() {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-white to-slate-50 shadow-md border-b border-slate-200">
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition-colors"
               aria-label="Open navigation menu"
             >
               <Menu size={24} />
             </button>
             <div className="flex items-center space-x-4 ml-auto">
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Welcome, </span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-slate-600">Welcome, </span>
+                <span className="text-sm font-semibold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                   {user?.firstName}
                 </span>
-                <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full capitalize">
+                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 text-slate-800 rounded-full capitalize shadow-sm">
                   {user?.role}
                 </span>
               </div>
@@ -185,7 +187,7 @@ export default function Layout() {
         </div>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 min-h-[calc(100vh-6rem)]">
           <Outlet />
         </main>
       </div>

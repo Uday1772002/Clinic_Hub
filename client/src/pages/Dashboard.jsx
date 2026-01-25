@@ -91,62 +91,64 @@ export default function Dashboard() {
       {/* Stats Cards - Only for doctors and admins */}
       {user?.role !== "patient" && stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl shadow-lg p-6 border border-blue-200/50 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-semibold text-blue-600">
                   Total Patients
                 </p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-3xl font-bold text-blue-900 mt-2">
                   {stats.totalPatients || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="text-blue-600" size={24} />
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Users className="text-white" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl shadow-lg p-6 border border-green-200/50 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-semibold text-green-600">
                   Today's Appointments
                 </p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-3xl font-bold text-green-900 mt-2">
                   {stats.todayAppointments || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Calendar className="text-green-600" size={24} />
+              <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Calendar className="text-white" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl shadow-lg p-6 border border-purple-200/50 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-sm font-semibold text-purple-600">
+                  Completed
+                </p>
+                <p className="text-3xl font-bold text-purple-900 mt-2">
                   {stats.completedAppointments || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="text-purple-600" size={24} />
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <CheckCircle className="text-white" size={28} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-xl shadow-lg p-6 border border-red-200/50 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Cancelled</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-sm font-semibold text-red-600">Cancelled</p>
+                <p className="text-3xl font-bold text-red-900 mt-2">
                   {stats.cancelledAppointments || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <XCircle className="text-red-600" size={24} />
+              <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <XCircle className="text-white" size={28} />
               </div>
             </div>
           </div>
@@ -154,17 +156,17 @@ export default function Dashboard() {
       )}
 
       {/* Upcoming Appointments */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Upcoming Appointments
+      <div className="bg-white rounded-xl shadow-lg border border-slate-100">
+        <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
+          <h2 className="text-lg font-bold text-slate-900">
+            📅 Upcoming Appointments
           </h2>
         </div>
         <div className="p-6">
           {upcomingAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
+            <div className="text-center py-12">
+              <Clock className="mx-auto h-12 w-12 text-slate-400" />
+              <p className="mt-3 text-sm font-medium text-slate-600">
                 No upcoming appointments
               </p>
             </div>
@@ -173,11 +175,11 @@ export default function Dashboard() {
               {upcomingAppointments.map((appointment) => (
                 <div
                   key={appointment._id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-lg hover:shadow-md hover:border-blue-200 transition-all border border-slate-100"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Calendar className="text-blue-600" size={20} />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                      <Calendar className="text-white" size={20} />
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900">

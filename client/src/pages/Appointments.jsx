@@ -93,20 +93,26 @@ export default function Appointments() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
-          <p className="text-gray-600 mt-1">Manage your appointments</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+            Appointments
+          </h1>
+          <p className="text-slate-600 mt-2 font-medium">
+            Manage your appointments efficiently
+          </p>
         </div>
-        <button
-          onClick={handleCreateAppointment}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={20} />
-          <span>New Appointment</span>
-        </button>
+        {(user?.role === "admin" || user?.role === "doctor") && (
+          <button
+            onClick={handleCreateAppointment}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg hover:shadow-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 font-semibold shadow-md"
+          >
+            <Plus size={20} />
+            <span>New Appointment</span>
+          </button>
+        )}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-100">
         <div className="flex flex-wrap gap-2">
           {["all", "scheduled", "confirmed", "completed", "cancelled"].map(
             (status) => (
