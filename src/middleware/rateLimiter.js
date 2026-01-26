@@ -1,3 +1,12 @@
+/**
+ * rateLimiter.js — Request throttling via express-rate-limit
+ *
+ * Two presets:
+ *   • apiLimiter  — generous limit (1 000 req / 15 min) for all endpoints
+ *   • authLimiter — stricter limit (50 req / 15 min) for login / register,
+ *     skipping successful requests so legitimate users aren’t blocked
+ */
+
 const rateLimit = require("express-rate-limit");
 
 // General API rate limiter

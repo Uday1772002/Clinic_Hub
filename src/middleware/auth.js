@@ -1,3 +1,12 @@
+/**
+ * auth.js — Express middleware for authentication & authorisation
+ *
+ * `authenticate` reads the JWT from the httpOnly "token" cookie,
+ * verifies it, loads the user from MongoDB and attaches it to
+ * `req.user`.  `authorize(...roles)` is a factory that returns a
+ * middleware restricting access to the given roles.
+ */
+
 const { verifyToken } = require("../utils/jwt");
 const User = require("../models/user");
 const logger = require("../utils/logger");
@@ -81,7 +90,7 @@ const authorize = (...roles) => {
       return res.status(403).json({
         success: false,
         message: `Access denied. This action requires one of the following roles: ${roles.join(
-          ", "
+          ", ",
         )}`,
       });
     }

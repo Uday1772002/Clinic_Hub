@@ -1,3 +1,11 @@
+/**
+ * errorHandler.js — Global Express error-handling middleware
+ *
+ * Catches thrown errors and Mongoose-specific failures (validation,
+ * duplicate key, bad ObjectId) and returns a consistent JSON
+ * envelope.  In development mode the stack trace is included.
+ */
+
 const logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
@@ -5,16 +13,16 @@ const errorHandler = (err, req, res, next) => {
     message: err.message,
     stack: err.stack,
     url: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 
   // Mongoose validation error
   if (err.name === "ValidationError") {
-    const errors = Object.values(err.errors).map(e => e.message);
+    const errors = Object.values(err.errors).map((e) => e.message);
     return res.status(400).json({
       success: false,
       message: "Validation Error",
-      errors
+      errors,
     });
   }
 
@@ -23,7 +31,7 @@ const errorHandler = (err, req, res, next) => {
     const field = Object.keys(err.keyPattern)[0];
     return res.status(400).json({
       success: false,
-      message: `A record with this ${field} already exists`
+      message: `A record with this ${field} already exists`,
     });
   }
 
@@ -31,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === "CastError") {
     return res.status(400).json({
       success: false,
-      message: "Invalid ID format"
+      message: "Invalid ID format",
     });
   }
 
@@ -39,14 +47,14 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
       success: false,
-      message: "Invalid token"
+      message: "Invalid token",
     });
   }
 
   if (err.name === "TokenExpiredError") {
     return res.status(401).json({
       success: false,
-      message: "Token expired"
+      message: "Token expired",
     });
   }
 
@@ -54,7 +62,7 @@ const errorHandler = (err, req, res, next) => {
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Internal server error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack })
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };
 

@@ -1,3 +1,12 @@
+/**
+ * Appointment model — scheduled visits between a patient and doctor
+ *
+ * A compound partial-unique index on (doctor, date, time) prevents
+ * double-booking as long as the appointment isn't cancelled or
+ * no-show.  Additional indexes on patient and status speed up
+ * the most common query patterns.
+ */
+
 const mongoose = require("mongoose");
 
 const appointmentSchema = new mongoose.Schema(
@@ -5,52 +14,59 @@ const appointmentSchema = new mongoose.Schema(
     patient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Patient is required"]
+      required: [true, "Patient is required"],
     },
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Doctor is required"]
+      required: [true, "Doctor is required"],
     },
     appointmentDate: {
       type: Date,
-      required: [true, "Appointment date is required"]
+      required: [true, "Appointment date is required"],
     },
     appointmentTime: {
       type: String,
-      required: [true, "Appointment time is required"]
+      required: [true, "Appointment time is required"],
     },
     duration: {
       type: Number,
       default: 30, // duration in minutes
-      required: true
+      required: true,
     },
     status: {
       type: String,
-      enum: ["scheduled", "confirmed", "in-progress", "completed", "cancelled", "no-show"],
-      default: "scheduled"
+      enum: [
+        "scheduled",
+        "confirmed",
+        "in-progress",
+        "completed",
+        "cancelled",
+        "no-show",
+      ],
+      default: "scheduled",
     },
     reason: {
       type: String,
-      required: [true, "Reason for appointment is required"]
+      required: [true, "Reason for appointment is required"],
     },
     notes: {
-      type: String
+      type: String,
     },
     cancelReason: {
-      type: String
+      type: String,
     },
     cancelledBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User",
     },
     cancelledAt: {
-      type: Date
-    }
+      type: Date,
+    },
   },
   {
-    timestamps: true
-  }
+    timestamps: true,
+  },
 );
 
 // Index for efficient queries
@@ -61,12 +77,12 @@ appointmentSchema.index({ status: 1 });
 // Prevent double booking
 appointmentSchema.index(
   { doctor: 1, appointmentDate: 1, appointmentTime: 1 },
-  { 
+  {
     unique: true,
-    partialFilterExpression: { 
-      status: { $nin: ["cancelled", "no-show"] } 
-    }
-  }
+    partialFilterExpression: {
+      status: { $nin: ["cancelled", "no-show"] },
+    },
+  },
 );
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);

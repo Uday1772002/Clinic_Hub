@@ -1,3 +1,11 @@
+/**
+ * AuditLog model — immutable record of every sensitive action
+ *
+ * Captures who did what, to which resource, including the request
+ * IP and user-agent.  Indexes on (user, timestamp) and
+ * (resourceType, resourceId) enable efficient filtering.
+ */
+
 const mongoose = require("mongoose");
 
 const auditLogSchema = new mongoose.Schema(
@@ -5,7 +13,7 @@ const auditLogSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     action: {
       type: String,
@@ -22,31 +30,31 @@ const auditLogSchema = new mongoose.Schema(
         "LOGOUT",
         "CREATE_USER",
         "UPDATE_USER",
-        "DELETE_USER"
-      ]
+        "DELETE_USER",
+      ],
     },
     resourceType: {
       type: String,
       required: true,
-      enum: ["Appointment", "PatientSummary", "VisitReport", "User", "Auth"]
+      enum: ["Appointment", "PatientSummary", "VisitReport", "User", "Auth"],
     },
     resourceId: {
-      type: mongoose.Schema.Types.ObjectId
+      type: mongoose.Schema.Types.ObjectId,
     },
     changes: {
-      type: mongoose.Schema.Types.Mixed
+      type: mongoose.Schema.Types.Mixed,
     },
     ipAddress: String,
     userAgent: String,
     timestamp: {
       type: Date,
       default: Date.now,
-      required: true
-    }
+      required: true,
+    },
   },
   {
-    timestamps: false
-  }
+    timestamps: false,
+  },
 );
 
 // Index for efficient queries
