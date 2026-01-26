@@ -1,14 +1,45 @@
+/**
+ * socket.js — Socket.IO initialisation & event handling
+ *
+ * Authenticates every socket connection using a JWT token provided
+ * via `socket.handshake.auth.token` or the Authorization header.
+ * After auth, each user is placed in a private room (`user_<id>`)
+ * so the server can push targeted real-time events.
+ */
+
 const socketIo = require("socket.io");
 const { verifyToken } = require("../utils/jwt");
 const logger = require("../utils/logger");
 
 const initializeSocket = (server) => {
-  const io = socketIo(server);
+  // Allow the React dev-server origin for WebSocket connections too
+  const io = socketIo(server, {
+    cors: {
+      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      credentials: true,
+    },
+  });
 
   // Authentication middleware for socket connections
+  // Supports three token sources:
+  //   1. socket.handshake.auth.token  (explicit from client)
+  //   2. Authorization: Bearer <token> header
+  //   3. httpOnly "token" cookie (sent via withCredentials + polling)
   io.use((socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(" ")[1];
+      // Parse cookies from the handshake headers ("token=abc; other=xyz")
+      const cookieHeader = socket.handshake.headers.cookie || "";
+      const cookies = Object.fromEntries(
+        cookieHeader.split(";").map((c) => {
+          const [k, ...v] = c.trim().split("=");
+          return [k, v.join("=")];
+        }),
+      );
+
+      const token =
+        socket.handshake.auth.token ||
+        socket.handshake.headers.authorization?.split(" ")[1] ||
+        cookies.token;
 
       if (!token) {
         return next(new Error("Authentication error: No token provided"));
@@ -18,7 +49,9 @@ const initializeSocket = (server) => {
       socket.userId = decoded.id;
       socket.userRole = decoded.role;
 
-      logger.info(`Socket authenticated: User ${socket.userId} (${socket.userRole})`);
+      logger.info(
+        `Socket authenticated: User ${socket.userId} (${socket.userRole})`,
+      );
       next();
     } catch (error) {
       logger.error("Socket authentication error:", error.message);
@@ -37,7 +70,7 @@ const initializeSocket = (server) => {
     socket.emit("connected", {
       message: "Connected to ClinicHub real-time server",
       userId: socket.userId,
-      role: socket.userRole
+      role: socket.userRole,
     });
 
     // Handle custom events
@@ -85,7 +118,7 @@ const initializeSocket = (server) => {
     socket.on("typing", (data) => {
       socket.to(data.room).emit("user_typing", {
         userId: socket.userId,
-        isTyping: data.isTyping
+        isTyping: data.isTyping,
       });
     });
 
@@ -108,7 +141,7 @@ const initializeSocket = (server) => {
 
   // Helper function to emit to multiple users
   io.emitToUsers = (userIds, event, data) => {
-    userIds.forEach(userId => {
+    userIds.forEach((userId) => {
       io.to(`user_${userId}`).emit(event, data);
     });
     logger.debug(`Emitted ${event} to ${userIds.length} users`);
@@ -116,7 +149,7 @@ const initializeSocket = (server) => {
 
   // Helper function to broadcast to all users with specific role
   io.emitToRole = (role, event, data) => {
-    io.sockets.sockets.forEach(socket => {
+    io.sockets.sockets.forEach((socket) => {
       if (socket.userRole === role) {
         socket.emit(event, data);
       }
