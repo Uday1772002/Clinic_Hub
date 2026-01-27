@@ -1,3 +1,11 @@
+/**
+ * visitReportController.js — Visit report lifecycle
+ *
+ * Doctors file a report after each appointment documenting chief
+ * complaint, vitals, diagnosis, prescriptions and lab orders.
+ * The report can be downloaded as a branded PDF via PDFKit.
+ */
+
 const VisitReport = require("../models/visitReport");
 const Appointment = require("../models/appointment");
 const PDFDocument = require("pdfkit");
@@ -21,7 +29,7 @@ const createVisitReport = async (req, res, next) => {
       labTests,
       followUpRequired,
       followUpDate,
-      additionalNotes
+      additionalNotes,
     } = req.body;
 
     // Check if appointment exists
@@ -32,24 +40,29 @@ const createVisitReport = async (req, res, next) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        message: "Appointment not found"
+        message: "Appointment not found",
       });
     }
 
     // Authorization check
-    if (req.user.role === "doctor" && appointment.doctor._id.toString() !== req.user.id) {
+    if (
+      req.user.role === "doctor" &&
+      appointment.doctor._id.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
     // Check if report already exists
-    const existingReport = await VisitReport.findOne({ appointment: appointmentId });
+    const existingReport = await VisitReport.findOne({
+      appointment: appointmentId,
+    });
     if (existingReport) {
       return res.status(400).json({
         success: false,
-        message: "Visit report already exists for this appointment"
+        message: "Visit report already exists for this appointment",
       });
     }
 
@@ -68,7 +81,7 @@ const createVisitReport = async (req, res, next) => {
       followUpRequired,
       followUpDate,
       additionalNotes,
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
 
     // Update appointment status to completed
@@ -78,18 +91,25 @@ const createVisitReport = async (req, res, next) => {
     await visitReport.populate([
       { path: "patient", select: "firstName lastName email phone" },
       { path: "doctor", select: "firstName lastName specialization" },
-      { path: "appointment" }
+      { path: "appointment" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "CREATE_VISIT_REPORT", "VisitReport", visitReport._id, visitReport, req);
+    await createAuditLog(
+      req.user.id,
+      "CREATE_VISIT_REPORT",
+      "VisitReport",
+      visitReport._id,
+      visitReport,
+      req,
+    );
 
     logger.info(`Visit report created: ${visitReport._id}`);
 
     res.status(201).json({
       success: true,
       message: "Visit report created successfully",
-      data: { visitReport }
+      data: { visitReport },
     });
   } catch (error) {
     next(error);
@@ -136,7 +156,7 @@ const getVisitReports = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: visitReports.length,
-      data: { visitReports }
+      data: { visitReports },
     });
   } catch (error) {
     next(error);
@@ -158,24 +178,26 @@ const getVisitReportById = async (req, res, next) => {
     if (!visitReport) {
       return res.status(404).json({
         success: false,
-        message: "Visit report not found"
+        message: "Visit report not found",
       });
     }
 
     // Authorization check
     if (
-      req.user.role === "patient" && visitReport.patient._id.toString() !== req.user.id ||
-      req.user.role === "doctor" && visitReport.doctor._id.toString() !== req.user.id
+      (req.user.role === "patient" &&
+        visitReport.patient._id.toString() !== req.user.id) ||
+      (req.user.role === "doctor" &&
+        visitReport.doctor._id.toString() !== req.user.id)
     ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: { visitReport }
+      data: { visitReport },
     });
   } catch (error) {
     next(error);
@@ -197,18 +219,20 @@ const downloadVisitReport = async (req, res, next) => {
     if (!visitReport) {
       return res.status(404).json({
         success: false,
-        message: "Visit report not found"
+        message: "Visit report not found",
       });
     }
 
     // Authorization check
     if (
-      req.user.role === "patient" && visitReport.patient._id.toString() !== req.user.id ||
-      req.user.role === "doctor" && visitReport.doctor._id.toString() !== req.user.id
+      (req.user.role === "patient" &&
+        visitReport.patient._id.toString() !== req.user.id) ||
+      (req.user.role === "doctor" &&
+        visitReport.doctor._id.toString() !== req.user.id)
     ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
@@ -219,7 +243,7 @@ const downloadVisitReport = async (req, res, next) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=visit-report-${visitReport._id}.pdf`
+      `attachment; filename=visit-report-${visitReport._id}.pdf`,
     );
 
     // Pipe PDF to response
@@ -233,14 +257,16 @@ const downloadVisitReport = async (req, res, next) => {
 
     doc.fontSize(10).text(`Report ID: ${visitReport._id}`, { align: "right" });
     doc.text(`Date: ${new Date(visitReport.visitDate).toLocaleDateString()}`, {
-      align: "right"
+      align: "right",
     });
     doc.moveDown();
 
     // Patient Information
     doc.fontSize(14).text("Patient Information", { underline: true });
     doc.fontSize(10).moveDown(0.5);
-    doc.text(`Name: ${visitReport.patient.firstName} ${visitReport.patient.lastName}`);
+    doc.text(
+      `Name: ${visitReport.patient.firstName} ${visitReport.patient.lastName}`,
+    );
     doc.text(`Email: ${visitReport.patient.email}`);
     doc.text(`Phone: ${visitReport.patient.phone}`);
     doc.moveDown();
@@ -248,7 +274,9 @@ const downloadVisitReport = async (req, res, next) => {
     // Doctor Information
     doc.fontSize(14).text("Doctor Information", { underline: true });
     doc.fontSize(10).moveDown(0.5);
-    doc.text(`Name: Dr. ${visitReport.doctor.firstName} ${visitReport.doctor.lastName}`);
+    doc.text(
+      `Name: Dr. ${visitReport.doctor.firstName} ${visitReport.doctor.lastName}`,
+    );
     doc.text(`Specialization: ${visitReport.doctor.specialization}`);
     doc.text(`License: ${visitReport.doctor.licenseNumber}`);
     doc.moveDown();
@@ -263,7 +291,7 @@ const downloadVisitReport = async (req, res, next) => {
     if (visitReport.symptoms && visitReport.symptoms.length > 0) {
       doc.fontSize(14).text("Symptoms", { underline: true });
       doc.fontSize(10).moveDown(0.5);
-      visitReport.symptoms.forEach(symptom => {
+      visitReport.symptoms.forEach((symptom) => {
         doc.text(`• ${symptom}`);
       });
       doc.moveDown();
@@ -277,8 +305,10 @@ const downloadVisitReport = async (req, res, next) => {
       if (vs.bloodPressure) doc.text(`Blood Pressure: ${vs.bloodPressure}`);
       if (vs.heartRate) doc.text(`Heart Rate: ${vs.heartRate} bpm`);
       if (vs.temperature) doc.text(`Temperature: ${vs.temperature}°F`);
-      if (vs.respiratoryRate) doc.text(`Respiratory Rate: ${vs.respiratoryRate}/min`);
-      if (vs.oxygenSaturation) doc.text(`Oxygen Saturation: ${vs.oxygenSaturation}%`);
+      if (vs.respiratoryRate)
+        doc.text(`Respiratory Rate: ${vs.respiratoryRate}/min`);
+      if (vs.oxygenSaturation)
+        doc.text(`Oxygen Saturation: ${vs.oxygenSaturation}%`);
       if (vs.weight) doc.text(`Weight: ${vs.weight} kg`);
       if (vs.height) doc.text(`Height: ${vs.height} cm`);
       doc.moveDown();
@@ -321,7 +351,9 @@ const downloadVisitReport = async (req, res, next) => {
       doc.fontSize(10).moveDown(0.5);
       doc.text(`Follow-up Required: Yes`);
       if (visitReport.followUpDate) {
-        doc.text(`Follow-up Date: ${new Date(visitReport.followUpDate).toLocaleDateString()}`);
+        doc.text(
+          `Follow-up Date: ${new Date(visitReport.followUpDate).toLocaleDateString()}`,
+        );
       }
       doc.moveDown();
     }
@@ -341,7 +373,7 @@ const downloadVisitReport = async (req, res, next) => {
         "This is a computer-generated report. For any queries, please contact ClinicHub.",
         50,
         doc.page.height - 50,
-        { align: "center" }
+        { align: "center" },
       );
 
     // Finalize PDF
@@ -365,20 +397,23 @@ const updateVisitReport = async (req, res, next) => {
     if (!visitReport) {
       return res.status(404).json({
         success: false,
-        message: "Visit report not found"
+        message: "Visit report not found",
       });
     }
 
     // Authorization check
-    if (req.user.role === "doctor" && visitReport.doctor.toString() !== req.user.id) {
+    if (
+      req.user.role === "doctor" &&
+      visitReport.doctor.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
     const updateData = req.body;
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       visitReport[key] = updateData[key];
     });
 
@@ -387,18 +422,25 @@ const updateVisitReport = async (req, res, next) => {
     await visitReport.populate([
       { path: "patient", select: "firstName lastName email phone" },
       { path: "doctor", select: "firstName lastName specialization" },
-      { path: "appointment" }
+      { path: "appointment" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_VISIT_REPORT", "VisitReport", visitReport._id, updateData, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_VISIT_REPORT",
+      "VisitReport",
+      visitReport._id,
+      updateData,
+      req,
+    );
 
     logger.info(`Visit report updated: ${visitReport._id}`);
 
     res.status(200).json({
       success: true,
       message: "Visit report updated successfully",
-      data: { visitReport }
+      data: { visitReport },
     });
   } catch (error) {
     next(error);
@@ -410,5 +452,5 @@ module.exports = {
   getVisitReports,
   getVisitReportById,
   downloadVisitReport,
-  updateVisitReport
+  updateVisitReport,
 };

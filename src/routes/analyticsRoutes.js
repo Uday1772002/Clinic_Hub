@@ -1,12 +1,36 @@
+/**
+ * analyticsRoutes.js — Routes for analytics & dashboard overview
+ */
+
 const express = require("express");
 const {
+  getOverview,
   getAppointmentAnalytics,
   getPatientAnalytics,
-  getDoctorPerformance
+  getDoctorPerformance,
 } = require("../controllers/analyticsController");
 const { authenticate, authorize } = require("../middleware/auth");
 
 const analyticsRouter = express.Router();
+
+/**
+ * @swagger
+ * /api/analytics/overview:
+ *   get:
+ *     summary: Get dashboard overview stats
+ *     tags: [Analytics]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Overview stats retrieved successfully
+ */
+analyticsRouter.get(
+  "/overview",
+  authenticate,
+  authorize("admin", "doctor"),
+  getOverview,
+);
 
 /**
  * @swagger
@@ -37,7 +61,12 @@ const analyticsRouter = express.Router();
  *       403:
  *         description: Access denied
  */
-analyticsRouter.get("/appointments", authenticate, authorize("admin"), getAppointmentAnalytics);
+analyticsRouter.get(
+  "/appointments",
+  authenticate,
+  authorize("admin"),
+  getAppointmentAnalytics,
+);
 
 /**
  * @swagger
@@ -64,7 +93,12 @@ analyticsRouter.get("/appointments", authenticate, authorize("admin"), getAppoin
  *       403:
  *         description: Access denied
  */
-analyticsRouter.get("/patients", authenticate, authorize("admin"), getPatientAnalytics);
+analyticsRouter.get(
+  "/patients",
+  authenticate,
+  authorize("admin"),
+  getPatientAnalytics,
+);
 
 /**
  * @swagger
@@ -96,6 +130,11 @@ analyticsRouter.get("/patients", authenticate, authorize("admin"), getPatientAna
  *       403:
  *         description: Access denied
  */
-analyticsRouter.get("/doctors/:doctorId", authenticate, authorize("admin", "doctor"), getDoctorPerformance);
+analyticsRouter.get(
+  "/doctors/:doctorId",
+  authenticate,
+  authorize("admin", "doctor"),
+  getDoctorPerformance,
+);
 
 module.exports = analyticsRouter;

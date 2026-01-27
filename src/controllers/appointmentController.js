@@ -1,3 +1,12 @@
+/**
+ * appointmentController.js — CRUD + cancel for appointments
+ *
+ * Provides duration-aware overlap detection so double-booking is
+ * impossible.  After every mutation the controller emits Socket.IO
+ * events to the affected users' private rooms and fires email
+ * notifications via the email utility.
+ */
+
 const Appointment = require("../models/appointment");
 const User = require("../models/user");
 const logger = require("../utils/logger");
@@ -11,13 +20,14 @@ const { sendAppointmentEmail } = require("../utils/email");
  */
 const createAppointment = async (req, res, next) => {
   try {
-    const { doctorId, appointmentDate, appointmentTime, duration, reason } = req.body;
+    const { doctorId, appointmentDate, appointmentTime, duration, reason } =
+      req.body;
 
     // Validate required fields
     if (!doctorId || !appointmentDate || !appointmentTime || !reason) {
       return res.status(400).json({
         success: false,
-        message: "Doctor, date, time, and reason are required"
+        message: "Doctor, date, time, and reason are required",
       });
     }
 
@@ -26,7 +36,7 @@ const createAppointment = async (req, res, next) => {
     if (!doctor || doctor.role !== "doctor") {
       return res.status(404).json({
         success: false,
-        message: "Doctor not found"
+        message: "Doctor not found",
       });
     }
 
@@ -37,19 +47,23 @@ const createAppointment = async (req, res, next) => {
       if (!patient || patient.role !== "patient") {
         return res.status(404).json({
           success: false,
-          message: "Patient not found"
+          message: "Patient not found",
         });
       }
       patientId = req.body.patientId;
     }
 
     // Check for conflicting appointments with duration-based overlap detection
-    // Convert time string to minutes for calculation (e.g., "10:00 AM" -> 600)
+    // Convert time string to minutes since midnight.
+    // Accepts 24-hour ("14:30") or 12-hour ("2:30 PM") formats.
     const timeToMinutes = (timeStr) => {
-      const [time, period] = timeStr.split(' ');
-      let [hours, minutes] = time.split(':').map(Number);
-      if (period === 'PM' && hours !== 12) hours += 12;
-      if (period === 'AM' && hours === 12) hours = 0;
+      const [time, period] = timeStr.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+      if (period) {
+        // 12-hour format
+        if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+        if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+      }
       return hours * 60 + minutes;
     };
 
@@ -60,7 +74,7 @@ const createAppointment = async (req, res, next) => {
     const existingAppointments = await Appointment.find({
       doctor: doctorId,
       appointmentDate: new Date(appointmentDate),
-      status: { $nin: ["cancelled", "no-show"] }
+      status: { $nin: ["cancelled", "no-show"] },
     });
 
     // Check for time overlaps
@@ -69,16 +83,18 @@ const createAppointment = async (req, res, next) => {
       const existingEndTime = existingStartTime + existing.duration;
 
       // Check if appointments overlap
-      const hasOverlap = (
-        (requestedStartTime >= existingStartTime && requestedStartTime < existingEndTime) || // New starts during existing
-        (requestedEndTime > existingStartTime && requestedEndTime <= existingEndTime) ||     // New ends during existing
-        (requestedStartTime <= existingStartTime && requestedEndTime >= existingEndTime)      // New completely covers existing
-      );
+      const hasOverlap =
+        (requestedStartTime >= existingStartTime &&
+          requestedStartTime < existingEndTime) || // New starts during existing
+        (requestedEndTime > existingStartTime &&
+          requestedEndTime <= existingEndTime) || // New ends during existing
+        (requestedStartTime <= existingStartTime &&
+          requestedEndTime >= existingEndTime); // New completely covers existing
 
       if (hasOverlap) {
         return res.status(409).json({
           success: false,
-          message: `This time slot conflicts with an existing appointment (${existing.appointmentTime} - ${existing.duration} minutes)`
+          message: `This time slot conflicts with an existing appointment (${existing.appointmentTime} - ${existing.duration} minutes)`,
         });
       }
     }
@@ -90,17 +106,24 @@ const createAppointment = async (req, res, next) => {
       appointmentDate,
       appointmentTime,
       duration: duration || 30,
-      reason
+      reason,
     });
 
     // Populate patient and doctor details
     await appointment.populate([
       { path: "patient", select: "firstName lastName email phone" },
-      { path: "doctor", select: "firstName lastName email specialization" }
+      { path: "doctor", select: "firstName lastName email specialization" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "CREATE_APPOINTMENT", "Appointment", appointment._id, appointment, req);
+    await createAuditLog(
+      req.user.id,
+      "CREATE_APPOINTMENT",
+      "Appointment",
+      appointment._id,
+      appointment,
+      req,
+    );
 
     // Send email notifications
     const appointmentDetails = {
@@ -111,16 +134,30 @@ const createAppointment = async (req, res, next) => {
       date: new Date(appointmentDate).toLocaleDateString(),
       time: appointmentTime,
       reason: reason,
-      status: appointment.status
+      status: appointment.status,
     };
 
-    await sendAppointmentEmail(appointment.patient.email, "Appointment Scheduled", appointmentDetails);
-    await sendAppointmentEmail(appointment.doctor.email, "New Appointment", appointmentDetails);
+    await sendAppointmentEmail(
+      appointment.patient.email,
+      "Appointment Scheduled",
+      appointmentDetails,
+    );
+    await sendAppointmentEmail(
+      appointment.doctor.email,
+      "New Appointment",
+      appointmentDetails,
+    );
 
     // Emit socket event (will be handled by socket manager)
     if (req.app.get("io")) {
-      req.app.get("io").to(`user_${doctorId}`).emit("new_appointment", appointment);
-      req.app.get("io").to(`user_${patientId}`).emit("appointment_update", appointment);
+      req.app
+        .get("io")
+        .to(`user_${doctorId}`)
+        .emit("new_appointment", appointment);
+      req.app
+        .get("io")
+        .to(`user_${patientId}`)
+        .emit("appointment_update", appointment);
     }
 
     logger.info(`Appointment created: ${appointment._id}`);
@@ -128,7 +165,7 @@ const createAppointment = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Appointment created successfully",
-      data: { appointment }
+      data: { appointment },
     });
   } catch (error) {
     next(error);
@@ -179,7 +216,7 @@ const getAppointments = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: appointments.length,
-      data: { appointments }
+      data: { appointments },
     });
   } catch (error) {
     next(error);
@@ -200,24 +237,26 @@ const getAppointmentById = async (req, res, next) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        message: "Appointment not found"
+        message: "Appointment not found",
       });
     }
 
     // Authorization check
     if (
-      req.user.role === "patient" && appointment.patient._id.toString() !== req.user.id ||
-      req.user.role === "doctor" && appointment.doctor._id.toString() !== req.user.id
+      (req.user.role === "patient" &&
+        appointment.patient._id.toString() !== req.user.id) ||
+      (req.user.role === "doctor" &&
+        appointment.doctor._id.toString() !== req.user.id)
     ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: { appointment }
+      data: { appointment },
     });
   } catch (error) {
     next(error);
@@ -238,15 +277,18 @@ const updateAppointment = async (req, res, next) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        message: "Appointment not found"
+        message: "Appointment not found",
       });
     }
 
     // Authorization check
-    if (req.user.role === "doctor" && appointment.doctor.toString() !== req.user.id) {
+    if (
+      req.user.role === "doctor" &&
+      appointment.doctor.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
@@ -254,11 +296,17 @@ const updateAppointment = async (req, res, next) => {
     const changes = {};
 
     if (appointmentDate) {
-      changes.appointmentDate = { old: appointment.appointmentDate, new: appointmentDate };
+      changes.appointmentDate = {
+        old: appointment.appointmentDate,
+        new: appointmentDate,
+      };
       appointment.appointmentDate = appointmentDate;
     }
     if (appointmentTime) {
-      changes.appointmentTime = { old: appointment.appointmentTime, new: appointmentTime };
+      changes.appointmentTime = {
+        old: appointment.appointmentTime,
+        new: appointmentTime,
+      };
       appointment.appointmentTime = appointmentTime;
     }
     if (status) {
@@ -275,16 +323,29 @@ const updateAppointment = async (req, res, next) => {
     // Populate for response
     await appointment.populate([
       { path: "patient", select: "firstName lastName email phone" },
-      { path: "doctor", select: "firstName lastName specialization" }
+      { path: "doctor", select: "firstName lastName specialization" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_APPOINTMENT", "Appointment", appointment._id, changes, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_APPOINTMENT",
+      "Appointment",
+      appointment._id,
+      changes,
+      req,
+    );
 
     // Emit socket event
     if (req.app.get("io")) {
-      req.app.get("io").to(`user_${appointment.patient._id}`).emit("appointment_update", appointment);
-      req.app.get("io").to(`user_${appointment.doctor._id}`).emit("appointment_update", appointment);
+      req.app
+        .get("io")
+        .to(`user_${appointment.patient._id}`)
+        .emit("appointment_update", appointment);
+      req.app
+        .get("io")
+        .to(`user_${appointment.doctor._id}`)
+        .emit("appointment_update", appointment);
     }
 
     // Send email notification if status changed
@@ -297,10 +358,14 @@ const updateAppointment = async (req, res, next) => {
         date: new Date(appointment.appointmentDate).toLocaleDateString(),
         time: appointment.appointmentTime,
         reason: appointment.reason,
-        status: appointment.status
+        status: appointment.status,
       };
 
-      await sendAppointmentEmail(appointment.patient.email, "Appointment Updated", appointmentDetails);
+      await sendAppointmentEmail(
+        appointment.patient.email,
+        "Appointment Updated",
+        appointmentDetails,
+      );
     }
 
     logger.info(`Appointment updated: ${appointment._id}`);
@@ -308,7 +373,7 @@ const updateAppointment = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Appointment updated successfully",
-      data: { appointment }
+      data: { appointment },
     });
   } catch (error) {
     next(error);
@@ -329,19 +394,21 @@ const cancelAppointment = async (req, res, next) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        message: "Appointment not found"
+        message: "Appointment not found",
       });
     }
 
     // Authorization check
     if (
-      req.user.role === "patient" && appointment.patient.toString() !== req.user.id ||
-      req.user.role === "doctor" && appointment.doctor.toString() !== req.user.id
+      (req.user.role === "patient" &&
+        appointment.patient.toString() !== req.user.id) ||
+      (req.user.role === "doctor" &&
+        appointment.doctor.toString() !== req.user.id)
     ) {
       if (req.user.role !== "admin") {
         return res.status(403).json({
           success: false,
-          message: "Access denied"
+          message: "Access denied",
         });
       }
     }
@@ -349,7 +416,7 @@ const cancelAppointment = async (req, res, next) => {
     if (appointment.status === "cancelled") {
       return res.status(400).json({
         success: false,
-        message: "Appointment is already cancelled"
+        message: "Appointment is already cancelled",
       });
     }
 
@@ -363,16 +430,29 @@ const cancelAppointment = async (req, res, next) => {
     // Populate for response
     await appointment.populate([
       { path: "patient", select: "firstName lastName email phone" },
-      { path: "doctor", select: "firstName lastName specialization" }
+      { path: "doctor", select: "firstName lastName specialization" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "CANCEL_APPOINTMENT", "Appointment", appointment._id, { cancelReason }, req);
+    await createAuditLog(
+      req.user.id,
+      "CANCEL_APPOINTMENT",
+      "Appointment",
+      appointment._id,
+      { cancelReason },
+      req,
+    );
 
     // Emit socket event
     if (req.app.get("io")) {
-      req.app.get("io").to(`user_${appointment.patient._id}`).emit("appointment_cancelled", appointment);
-      req.app.get("io").to(`user_${appointment.doctor._id}`).emit("appointment_cancelled", appointment);
+      req.app
+        .get("io")
+        .to(`user_${appointment.patient._id}`)
+        .emit("appointment_cancelled", appointment);
+      req.app
+        .get("io")
+        .to(`user_${appointment.doctor._id}`)
+        .emit("appointment_cancelled", appointment);
     }
 
     // Send email notifications
@@ -384,18 +464,26 @@ const cancelAppointment = async (req, res, next) => {
       date: new Date(appointment.appointmentDate).toLocaleDateString(),
       time: appointment.appointmentTime,
       reason: appointment.reason,
-      status: "cancelled"
+      status: "cancelled",
     };
 
-    await sendAppointmentEmail(appointment.patient.email, "Appointment Cancelled", appointmentDetails);
-    await sendAppointmentEmail(appointment.doctor.email, "Appointment Cancelled", appointmentDetails);
+    await sendAppointmentEmail(
+      appointment.patient.email,
+      "Appointment Cancelled",
+      appointmentDetails,
+    );
+    await sendAppointmentEmail(
+      appointment.doctor.email,
+      "Appointment Cancelled",
+      appointmentDetails,
+    );
 
     logger.info(`Appointment cancelled: ${appointment._id}`);
 
     res.status(200).json({
       success: true,
       message: "Appointment cancelled successfully",
-      data: { appointment }
+      data: { appointment },
     });
   } catch (error) {
     next(error);
@@ -407,5 +495,5 @@ module.exports = {
   getAppointments,
   getAppointmentById,
   updateAppointment,
-  cancelAppointment
+  cancelAppointment,
 };
