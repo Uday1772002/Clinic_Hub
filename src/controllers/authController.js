@@ -1,3 +1,11 @@
+/**
+ * authController.js — Authentication & user management
+ *
+ * Handles registration, login (sets httpOnly JWT cookie), profile
+ * retrieval and updates, and logout (clears the cookie).  Every
+ * action is audit-logged for compliance.
+ */
+
 const User = require("../models/user");
 const { generateToken } = require("../utils/jwt");
 const logger = require("../utils/logger");
@@ -9,7 +17,7 @@ const getCookieOptions = () => ({
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: "/"
+  path: "/",
 });
 
 /**
@@ -19,14 +27,23 @@ const getCookieOptions = () => ({
  */
 const register = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password, role, phone, specialization, licenseNumber } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      phone,
+      specialization,
+      licenseNumber,
+    } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User with this email already exists"
+        message: "User with this email already exists",
       });
     }
 
@@ -37,7 +54,7 @@ const register = async (req, res, next) => {
       email,
       password,
       role: role || "patient",
-      phone
+      phone,
     };
 
     // Add doctor-specific fields
@@ -45,7 +62,7 @@ const register = async (req, res, next) => {
       if (!specialization || !licenseNumber) {
         return res.status(400).json({
           success: false,
-          message: "Specialization and license number are required for doctors"
+          message: "Specialization and license number are required for doctors",
         });
       }
       userData.specialization = specialization;
@@ -58,12 +75,16 @@ const register = async (req, res, next) => {
       if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET_KEY) {
         return res.status(403).json({
           success: false,
-          message: "Invalid or missing admin secret key"
+          message: "Invalid or missing admin secret key",
         });
       }
     }
 
     const user = await User.create(userData);
+
+    // Auto-login: set a JWT cookie so the user is authenticated right away
+    const token = generateToken(user._id, user.role);
+    res.cookie("token", token, getCookieOptions());
 
     logger.info(`New user registered: ${user.email} with role: ${user.role}`);
 
@@ -77,9 +98,9 @@ const register = async (req, res, next) => {
           lastName: user.lastName,
           email: user.email,
           role: user.role,
-          phone: user.phone
-        }
-      }
+          phone: user.phone,
+        },
+      },
     });
   } catch (error) {
     next(error);
@@ -99,7 +120,7 @@ const login = async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please provide email and password"
+        message: "Please provide email and password",
       });
     }
 
@@ -109,7 +130,7 @@ const login = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
 
@@ -117,7 +138,7 @@ const login = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        message: "Your account has been deactivated. Please contact support."
+        message: "Your account has been deactivated. Please contact support.",
       });
     }
 
@@ -127,7 +148,7 @@ const login = async (req, res, next) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
 
@@ -159,10 +180,10 @@ const login = async (req, res, next) => {
           phone: user.phone,
           ...(user.role === "doctor" && {
             specialization: user.specialization,
-            licenseNumber: user.licenseNumber
-          })
-        }
-      }
+            licenseNumber: user.licenseNumber,
+          }),
+        },
+      },
     });
   } catch (error) {
     next(error);
@@ -180,7 +201,7 @@ const getMe = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: { user }
+      data: { user },
     });
   } catch (error) {
     next(error);
@@ -204,21 +225,27 @@ const updateProfile = async (req, res, next) => {
       updateData.specialization = specialization;
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const user = await User.findByIdAndUpdate(req.user.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_USER", "User", user._id, updateData, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_USER",
+      "User",
+      user._id,
+      updateData,
+      req,
+    );
 
     logger.info(`User profile updated: ${user.email}`);
 
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: { user }
+      data: { user },
     });
   } catch (error) {
     next(error);
@@ -237,7 +264,7 @@ const logout = async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      path: "/"
+      path: "/",
     });
 
     // Create audit log
@@ -247,7 +274,7 @@ const logout = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Logout successful"
+      message: "Logout successful",
     });
   } catch (error) {
     next(error);
@@ -259,5 +286,5 @@ module.exports = {
   login,
   getMe,
   updateProfile,
-  logout
+  logout,
 };

@@ -1,3 +1,11 @@
+/**
+ * patientController.js — Patient health-record management
+ *
+ * Manages the per-patient summary document that contains allergies,
+ * chronic conditions, current medications, vaccinations and more.
+ * Summaries are lazily created on first access.
+ */
+
 const PatientSummary = require("../models/patientSummary");
 const User = require("../models/user");
 const logger = require("../utils/logger");
@@ -13,12 +21,10 @@ const getPatientSummary = async (req, res, next) => {
     const { patientId } = req.params;
 
     // Authorization check
-    if (
-      req.user.role === "patient" && patientId !== req.user.id
-    ) {
+    if (req.user.role === "patient" && patientId !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
@@ -35,7 +41,7 @@ const getPatientSummary = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: { summary }
+      data: { summary },
     });
   } catch (error) {
     next(error);
@@ -57,7 +63,7 @@ const updatePatientSummary = async (req, res, next) => {
     if (!patient || patient.role !== "patient") {
       return res.status(404).json({
         success: false,
-        message: "Patient not found"
+        message: "Patient not found",
       });
     }
 
@@ -68,11 +74,11 @@ const updatePatientSummary = async (req, res, next) => {
       summary = await PatientSummary.create({
         patient: patientId,
         ...updateData,
-        lastUpdatedBy: req.user.id
+        lastUpdatedBy: req.user.id,
       });
     } else {
       // Update fields
-      Object.keys(updateData).forEach(key => {
+      Object.keys(updateData).forEach((key) => {
         summary[key] = updateData[key];
       });
       summary.lastUpdatedBy = req.user.id;
@@ -81,19 +87,29 @@ const updatePatientSummary = async (req, res, next) => {
 
     await summary.populate([
       { path: "patient", select: "firstName lastName email phone" },
-      { path: "medications.prescribedBy", select: "firstName lastName specialization" },
-      { path: "lastUpdatedBy", select: "firstName lastName" }
+      {
+        path: "medications.prescribedBy",
+        select: "firstName lastName specialization",
+      },
+      { path: "lastUpdatedBy", select: "firstName lastName" },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_PATIENT_SUMMARY", "PatientSummary", summary._id, updateData, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_PATIENT_SUMMARY",
+      "PatientSummary",
+      summary._id,
+      updateData,
+      req,
+    );
 
     logger.info(`Patient summary updated: ${summary._id}`);
 
     res.status(200).json({
       success: true,
       message: "Patient summary updated successfully",
-      data: { summary }
+      data: { summary },
     });
   } catch (error) {
     next(error);
@@ -123,7 +139,7 @@ const addMedication = async (req, res, next) => {
       startDate,
       endDate,
       prescribedBy: req.user.id,
-      isActive: true
+      isActive: true,
     });
 
     summary.lastUpdatedBy = req.user.id;
@@ -131,18 +147,28 @@ const addMedication = async (req, res, next) => {
 
     await summary.populate([
       { path: "patient", select: "firstName lastName email" },
-      { path: "medications.prescribedBy", select: "firstName lastName specialization" }
+      {
+        path: "medications.prescribedBy",
+        select: "firstName lastName specialization",
+      },
     ]);
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_PATIENT_SUMMARY", "PatientSummary", summary._id, { action: "add_medication", medication: { name, dosage } }, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_PATIENT_SUMMARY",
+      "PatientSummary",
+      summary._id,
+      { action: "add_medication", medication: { name, dosage } },
+      req,
+    );
 
     logger.info(`Medication added to patient summary: ${summary._id}`);
 
     res.status(200).json({
       success: true,
       message: "Medication added successfully",
-      data: { summary }
+      data: { summary },
     });
   } catch (error) {
     next(error);
@@ -168,7 +194,7 @@ const addAllergy = async (req, res, next) => {
     summary.allergies.push({
       name,
       severity,
-      addedDate: new Date()
+      addedDate: new Date(),
     });
 
     summary.lastUpdatedBy = req.user.id;
@@ -177,14 +203,21 @@ const addAllergy = async (req, res, next) => {
     await summary.populate("patient", "firstName lastName email");
 
     // Create audit log
-    await createAuditLog(req.user.id, "UPDATE_PATIENT_SUMMARY", "PatientSummary", summary._id, { action: "add_allergy", allergy: { name, severity } }, req);
+    await createAuditLog(
+      req.user.id,
+      "UPDATE_PATIENT_SUMMARY",
+      "PatientSummary",
+      summary._id,
+      { action: "add_allergy", allergy: { name, severity } },
+      req,
+    );
 
     logger.info(`Allergy added to patient summary: ${summary._id}`);
 
     res.status(200).json({
       success: true,
       message: "Allergy added successfully",
-      data: { summary }
+      data: { summary },
     });
   } catch (error) {
     next(error);
@@ -195,5 +228,5 @@ module.exports = {
   getPatientSummary,
   updatePatientSummary,
   addMedication,
-  addAllergy
+  addAllergy,
 };
