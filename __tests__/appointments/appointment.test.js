@@ -1,3 +1,10 @@
+/**
+ * Appointment integration tests
+ *
+ * Covers creating, listing, updating and cancelling appointments
+ * for patient, doctor and admin roles.
+ */
+
 const request = require("supertest");
 const mongoose = require("mongoose");
 const app = require("../../src/app");
@@ -12,10 +19,7 @@ let patientId, doctorId, adminId;
 
 beforeAll(async () => {
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(testDbUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(testDbUri);
   }
 
   // Create test users
@@ -168,7 +172,7 @@ describe("Appointment API Tests", () => {
         .expect(409);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain("time slot is already booked");
+      expect(response.body.message).toContain("conflicts");
     });
 
     test("should fail to create appointment without required fields", async () => {
@@ -382,7 +386,7 @@ describe("Appointment API Tests", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.appointment.status).toBe("cancelled");
       expect(response.body.data.appointment.cancelReason).toBe(
-        "Personal reasons"
+        "Personal reasons",
       );
     });
 

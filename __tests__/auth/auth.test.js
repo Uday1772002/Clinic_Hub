@@ -1,17 +1,21 @@
+/**
+ * Auth integration tests
+ *
+ * Uses a local test database (clinichub_test) — NOT mongodb-memory-server.
+ * Each suite cleans up after itself so test order doesn't matter.
+ */
+
 const request = require("supertest");
 const mongoose = require("mongoose");
 const app = require("../../src/app");
 const User = require("../../src/models/user");
 
-// Test database connection
-const testDbUri = process.env.TEST_MONGODB_URI || "mongodb://localhost:27017/clinichub_test";
+const testDbUri =
+  process.env.TEST_MONGODB_URI || "mongodb://localhost:27017/clinichub_test";
 
 beforeAll(async () => {
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(testDbUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(testDbUri);
   }
 });
 
@@ -32,7 +36,7 @@ describe("Authentication API Tests", () => {
       email: "john.doe@test.com",
       password: "Test@1234",
       phone: "1234567890",
-      role: "patient"
+      role: "patient",
     };
 
     const validDoctorData = {
@@ -43,7 +47,7 @@ describe("Authentication API Tests", () => {
       phone: "9876543210",
       role: "doctor",
       specialization: "Cardiology",
-      licenseNumber: "MD12345"
+      licenseNumber: "MD12345",
     };
 
     test("should register a new patient successfully", async () => {
@@ -75,9 +79,7 @@ describe("Authentication API Tests", () => {
 
     test("should fail to register with duplicate email", async () => {
       // Register first user
-      await request(app)
-        .post("/api/auth/register")
-        .send(validPatientData);
+      await request(app).post("/api/auth/register").send(validPatientData);
 
       // Try to register with same email
       const response = await request(app)
@@ -135,16 +137,14 @@ describe("Authentication API Tests", () => {
   describe("POST /api/auth/login", () => {
     beforeEach(async () => {
       // Create a test user
-      await request(app)
-        .post("/api/auth/register")
-        .send({
-          firstName: "Test",
-          lastName: "User",
-          email: "test@test.com",
-          password: "Test@1234",
-          phone: "1234567890",
-          role: "patient"
-        });
+      await request(app).post("/api/auth/register").send({
+        firstName: "Test",
+        lastName: "User",
+        email: "test@test.com",
+        password: "Test@1234",
+        phone: "1234567890",
+        role: "patient",
+      });
     });
 
     test("should login successfully with valid credentials", async () => {
@@ -152,7 +152,7 @@ describe("Authentication API Tests", () => {
         .post("/api/auth/login")
         .send({
           email: "test@test.com",
-          password: "Test@1234"
+          password: "Test@1234",
         })
         .expect(200);
 
@@ -168,7 +168,7 @@ describe("Authentication API Tests", () => {
         .post("/api/auth/login")
         .send({
           email: "test@test.com",
-          password: "WrongPassword@123"
+          password: "WrongPassword@123",
         })
         .expect(401);
 
@@ -181,7 +181,7 @@ describe("Authentication API Tests", () => {
         .post("/api/auth/login")
         .send({
           email: "nonexistent@test.com",
-          password: "Test@1234"
+          password: "Test@1234",
         })
         .expect(401);
 
@@ -193,7 +193,7 @@ describe("Authentication API Tests", () => {
       const response = await request(app)
         .post("/api/auth/login")
         .send({
-          password: "Test@1234"
+          password: "Test@1234",
         })
         .expect(400);
 
@@ -204,7 +204,7 @@ describe("Authentication API Tests", () => {
       const response = await request(app)
         .post("/api/auth/login")
         .send({
-          email: "test@test.com"
+          email: "test@test.com",
         })
         .expect(400);
 
@@ -217,16 +217,14 @@ describe("Authentication API Tests", () => {
     let userId;
 
     beforeEach(async () => {
-      const response = await request(app)
-        .post("/api/auth/register")
-        .send({
-          firstName: "Test",
-          lastName: "User",
-          email: "me@test.com",
-          password: "Test@1234",
-          phone: "1234567890",
-          role: "patient"
-        });
+      const response = await request(app).post("/api/auth/register").send({
+        firstName: "Test",
+        lastName: "User",
+        email: "me@test.com",
+        password: "Test@1234",
+        phone: "1234567890",
+        role: "patient",
+      });
 
       cookies = response.headers["set-cookie"];
       userId = response.body.data.user.id;
@@ -244,9 +242,7 @@ describe("Authentication API Tests", () => {
     });
 
     test("should fail to get profile without cookie", async () => {
-      const response = await request(app)
-        .get("/api/auth/me")
-        .expect(401);
+      const response = await request(app).get("/api/auth/me").expect(401);
 
       expect(response.body.success).toBe(false);
     });
@@ -265,16 +261,14 @@ describe("Authentication API Tests", () => {
     let cookies;
 
     beforeEach(async () => {
-      const response = await request(app)
-        .post("/api/auth/register")
-        .send({
-          firstName: "Test",
-          lastName: "User",
-          email: "profile@test.com",
-          password: "Test@1234",
-          phone: "1234567890",
-          role: "patient"
-        });
+      const response = await request(app).post("/api/auth/register").send({
+        firstName: "Test",
+        lastName: "User",
+        email: "profile@test.com",
+        password: "Test@1234",
+        phone: "1234567890",
+        role: "patient",
+      });
 
       cookies = response.headers["set-cookie"];
     });
@@ -286,7 +280,7 @@ describe("Authentication API Tests", () => {
         .send({
           firstName: "Updated",
           lastName: "Name",
-          phone: "9876543210"
+          phone: "9876543210",
         })
         .expect(200);
 
@@ -300,7 +294,7 @@ describe("Authentication API Tests", () => {
       const response = await request(app)
         .put("/api/auth/profile")
         .send({
-          firstName: "Updated"
+          firstName: "Updated",
         })
         .expect(401);
 
@@ -312,7 +306,7 @@ describe("Authentication API Tests", () => {
         .put("/api/auth/profile")
         .set("Cookie", cookies)
         .send({
-          phone: "123"
+          phone: "123",
         })
         .expect(400);
 
