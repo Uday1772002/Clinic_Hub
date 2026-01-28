@@ -1,3 +1,11 @@
+/**
+ * logger.js — Centralised Winston logger
+ *
+ * Writes JSON-formatted logs to `logs/combined.log` and error-level
+ * messages to `logs/error.log` (both rotate at 5 MB, 5 files max).
+ * In non-production a colourised console transport is added.
+ */
+
 const winston = require("winston");
 const path = require("path");
 
@@ -6,7 +14,7 @@ const logFormat = winston.format.combine(
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
-  winston.format.json()
+  winston.format.json(),
 );
 
 // Console format for development
@@ -19,7 +27,7 @@ const consoleFormat = winston.format.combine(
       msg += ` ${JSON.stringify(meta)}`;
     }
     return msg;
-  })
+  }),
 );
 
 // Create logger instance
@@ -31,24 +39,24 @@ const logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(__dirname, "../../logs/combined.log"),
       maxsize: 5242880, // 5MB
-      maxFiles: 5
+      maxFiles: 5,
     }),
     // Write all errors to error.log
     new winston.transports.File({
       filename: path.join(__dirname, "../../logs/error.log"),
       level: "error",
       maxsize: 5242880, // 5MB
-      maxFiles: 5
-    })
-  ]
+      maxFiles: 5,
+    }),
+  ],
 });
 
 // Add console transport in development
 if (process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
-      format: consoleFormat
-    })
+      format: consoleFormat,
+    }),
   );
 }
 

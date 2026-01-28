@@ -1,3 +1,11 @@
+/**
+ * email.js — Outbound email notifications via Nodemailer
+ *
+ * If SMTP credentials are not configured the helper silently skips
+ * sending so the app still works during local development.  The
+ * HTML template is kept inline for simplicity.
+ */
+
 const nodemailer = require("nodemailer");
 const logger = require("./logger");
 
@@ -9,8 +17,8 @@ const createTransporter = () => {
     secure: false,
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD
-    }
+      pass: process.env.SMTP_PASSWORD,
+    },
   });
 };
 
@@ -18,7 +26,9 @@ const createTransporter = () => {
 const sendAppointmentEmail = async (to, subject, appointmentDetails) => {
   try {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-      logger.warn("Email credentials not configured. Skipping email notification.");
+      logger.warn(
+        "Email credentials not configured. Skipping email notification.",
+      );
       return;
     }
 
@@ -28,7 +38,7 @@ const sendAppointmentEmail = async (to, subject, appointmentDetails) => {
       from: process.env.EMAIL_FROM,
       to,
       subject,
-      html: generateAppointmentEmailHTML(appointmentDetails)
+      html: generateAppointmentEmailHTML(appointmentDetails),
     };
 
     await transporter.sendMail(mailOptions);
@@ -77,7 +87,7 @@ const generateAppointmentEmailHTML = (details) => {
           <div class="detail">
             <span class="label">Reason:</span> ${details.reason}
           </div>
-          ${details.status ? `<div class="detail"><span class="label">Status:</span> ${details.status}</div>` : ''}
+          ${details.status ? `<div class="detail"><span class="label">Status:</span> ${details.status}</div>` : ""}
         </div>
         <div class="footer">
           <p>This is an automated message from ClinicHub. Please do not reply to this email.</p>
@@ -89,5 +99,5 @@ const generateAppointmentEmailHTML = (details) => {
 };
 
 module.exports = {
-  sendAppointmentEmail
+  sendAppointmentEmail,
 };
