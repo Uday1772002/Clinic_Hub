@@ -2,14 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Base reset & typography ──────────────────────────────────────── */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family:
+    "Inter",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  line-height: 1.6;
   font-weight: 400;
-  color-scheme: light dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+  color: #1e293b; /* slate-800 */
+  background-color: #f8fafc; /* slate-50  */
 }
 
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -17,22 +29,38 @@
 
 body {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #f8fafc;
 }
 
 #root {
   min-height: 100vh;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* ── Smooth scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+/* ── Focus-visible ring (keyboard only) ───────────────────────────── */
+*:focus-visible {
+  outline: 2px solid #6366f1; /* brand-500 */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Selection colour ─────────────────────────────────────────────── */
+::selection {
+  background: #c7d2fe; /* brand-200 */
+  color: #1e1b4b; /* brand-950 */
 }

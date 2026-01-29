@@ -14,8 +14,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         toastOptions={{
           duration: 4000,
           style: {
-            background: "#363636",
-            color: "#fff",
+            background: "#fff",
+            color: "#1e293b",
+            borderRadius: "0.75rem",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+            fontSize: "0.875rem",
           },
           success: {
             duration: 3000,
@@ -34,5 +38,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         }}
       />
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
