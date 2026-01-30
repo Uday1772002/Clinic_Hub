@@ -1,8 +1,19 @@
+/**
+ * Profile.jsx — Account settings page
+ *
+ * Lets a user view and edit their name, phone, and (for doctors)
+ * specialization.  Email is displayed but read-only.
+ */
+
 import { useState } from "react";
 import { User, Mail, Phone, Briefcase, Save } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
+
+/** Shared input class */
+const inputCls =
+  "pl-10 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-500 transition";
 
 export default function Profile() {
   const { user, updateUser } = useAuthStore();
@@ -18,10 +29,9 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const response = await authAPI.updateProfile(formData);
-      updateUser(response.data.data);
+      updateUser(response.data.data.user);
       toast.success("Profile updated successfully");
       setIsEditing(false);
     } catch (error) {
@@ -36,37 +46,44 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-        <p className="text-gray-600 mt-1">Manage your account information</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Profile
+        </h1>
+        <p className="text-slate-500 mt-1">Manage your account information</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="text-blue-600" size={40} />
+      <div className="bg-white rounded-2xl shadow-card border border-slate-100">
+        {/* Avatar header */}
+        <div className="p-6 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-600/20">
+              <span className="text-white text-2xl font-bold">
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0]}
+              </span>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-slate-900">
                 {user?.firstName} {user?.lastName}
               </h2>
-              <p className="text-gray-600 capitalize">{user?.role}</p>
+              <p className="text-slate-400 capitalize text-sm">{user?.role}</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 First Name
               </label>
               <div className="relative">
                 <User
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={18}
                 />
                 <input
                   type="text"
@@ -74,19 +91,18 @@ export default function Profile() {
                   value={formData.firstName}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
+                  className={inputCls}
                 />
               </div>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Last Name
               </label>
               <div className="relative">
                 <User
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={18}
                 />
                 <input
                   type="text"
@@ -94,41 +110,41 @@ export default function Profile() {
                   value={formData.lastName}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
+                  className={inputCls}
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Email Address
             </label>
             <div className="relative">
               <Mail
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={18}
               />
               <input
                 type="email"
                 value={user?.email}
                 disabled
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                className={`${inputCls} cursor-not-allowed`}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               Email cannot be changed
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Phone Number
             </label>
             <div className="relative">
               <Phone
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={18}
               />
               <input
                 type="tel"
@@ -136,20 +152,20 @@ export default function Profile() {
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
+                className={inputCls}
               />
             </div>
           </div>
 
           {user?.role === "doctor" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Specialization
               </label>
               <div className="relative">
                 <Briefcase
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={18}
                 />
                 <input
                   type="text"
@@ -157,13 +173,13 @@ export default function Profile() {
                   value={formData.specialization}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
+                  className={inputCls}
                 />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             {isEditing ? (
               <>
                 <button
@@ -177,24 +193,24 @@ export default function Profile() {
                       specialization: user?.specialization || "",
                     });
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/20 hover:from-indigo-700 hover:to-indigo-600 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Save size={18} />
-                  <span>{isLoading ? "Saving..." : "Save Changes"}</span>
+                  <Save size={16} />
+                  {isLoading ? "Saving…" : "Save Changes"}
                 </button>
               </>
             ) : (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/20 hover:from-indigo-700 hover:to-indigo-600 transition-all text-sm font-medium"
               >
                 Edit Profile
               </button>
