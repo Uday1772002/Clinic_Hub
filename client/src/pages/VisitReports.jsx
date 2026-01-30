@@ -1,5 +1,13 @@
+/**
+ * VisitReports.jsx — List and download clinical visit reports
+ *
+ * Doctors see their own reports; patients see reports written
+ * for them.  Each card shows the chief complaint, diagnosis and
+ * a button to download the report as a PDF.
+ */
+
 import { useEffect, useState } from "react";
-import { FileText, Download, Plus } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { visitReportsAPI } from "../services/api";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
@@ -12,7 +20,7 @@ export default function VisitReports() {
     try {
       setIsLoading(true);
       const response = await visitReportsAPI.getAll();
-      setReports(response.data.data || []);
+      setReports(response.data?.data?.visitReports ?? []);
     } catch (error) {
       console.error("Error fetching visit reports:", error);
     } finally {
@@ -30,113 +38,83 @@ export default function VisitReports() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `visit-report-${patientName}-${reportId}.pdf`
-      );
+      link.setAttribute("download", `visit-report-${patientName}-${reportId}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       toast.success("Report downloaded successfully");
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      toast.error("Failed to download report");
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Visit Reports</h1>
-          <p className="text-gray-600 mt-1">
-            Post-visit medical reports and documentation
-          </p>
-        </div>
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Visit Reports</h1>
+        <p className="text-slate-500 mt-1">Post-visit medical reports and documentation</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-2xl shadow-card border border-slate-100">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="h-10 w-10 rounded-full border-[3px] border-indigo-200 border-t-indigo-600 animate-spin" />
           </div>
         ) : reports.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-sm text-gray-600">No visit reports found</p>
+          <div className="text-center py-14">
+            <FileText className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 text-sm text-slate-500">No visit reports found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-100">
             {reports.map((report) => (
-              <div
-                key={report._id}
-                className="p-6 hover:bg-gray-50 transition-colors"
-              >
+              <div key={report._id} className="p-6 hover:bg-slate-50/60 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <FileText className="text-blue-600" size={20} />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center">
+                        <FileText className="text-violet-600" size={18} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          Visit Report - {report.patientId?.firstName}{" "}
-                          {report.patientId?.lastName}
+                        <h3 className="text-[15px] font-semibold text-slate-900">
+                          Visit Report &mdash; {report.patient?.firstName} {report.patient?.lastName}
                         </h3>
-                        <p className="text-sm text-gray-500">
-                          Dr. {report.doctorId?.firstName}{" "}
-                          {report.doctorId?.lastName}
+                        <p className="text-xs text-slate-400">
+                          Dr. {report.doctor?.firstName} {report.doctor?.lastName}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-2">
-                      <div className="text-sm">
-                        <span className="font-medium text-gray-700">
-                          Date:{" "}
-                        </span>
-                        <span className="text-gray-600">
-                          {format(new Date(report.visitDate), "MMM dd, yyyy")}
-                        </span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium text-gray-700">
-                          Diagnosis:{" "}
-                        </span>
-                        <span className="text-gray-600">
-                          {report.diagnosis}
-                        </span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium text-gray-700">
-                          Treatment:{" "}
-                        </span>
-                        <span className="text-gray-600">
-                          {report.treatment}
-                        </span>
-                      </div>
-                      {report.notes && (
-                        <div className="text-sm">
-                          <span className="font-medium text-gray-700">
-                            Notes:{" "}
-                          </span>
-                          <span className="text-gray-600">{report.notes}</span>
-                        </div>
+                    <div className="mt-4 space-y-1.5 text-sm">
+                      <p>
+                        <span className="font-medium text-slate-700">Date: </span>
+                        <span className="text-slate-500">{format(new Date(report.visitDate), "MMM dd, yyyy")}</span>
+                      </p>
+                      <p>
+                        <span className="font-medium text-slate-700">Diagnosis: </span>
+                        <span className="text-slate-500">{report.diagnosis}</span>
+                      </p>
+                      <p>
+                        <span className="font-medium text-slate-700">Chief Complaint: </span>
+                        <span className="text-slate-500">{report.chiefComplaint}</span>
+                      </p>
+                      {report.additionalNotes && (
+                        <p>
+                          <span className="font-medium text-slate-700">Notes: </span>
+                          <span className="text-slate-500">{report.additionalNotes}</span>
+                        </p>
                       )}
                     </div>
                   </div>
 
                   <button
                     onClick={() =>
-                      handleDownloadPDF(
-                        report._id,
-                        `${report.patientId?.firstName}-${report.patientId?.lastName}`
-                      )
+                      handleDownloadPDF(report._id, `${report.patient?.firstName}-${report.patient?.lastName}`)
                     }
-                    className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="ml-4 inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/20 hover:from-indigo-700 hover:to-indigo-600 transition-all text-sm font-medium shrink-0"
                   >
-                    <Download size={18} />
-                    <span>Download PDF</span>
+                    <Download size={16} />
+                    Download PDF
                   </button>
                 </div>
               </div>
