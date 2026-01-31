@@ -1,8 +1,26 @@
+# Dependencies
 node_modules/
+
+# Environment
 .env
-coverage/
-*.log
-.DS_Store
+.env.local
+.env.*.local
+
+# Build & output
 dist/
 build/
+coverage/
 reports/
+.nyc_output/
+
+# Logs
+logs/*.log
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
