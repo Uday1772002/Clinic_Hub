@@ -1,3 +1,11 @@
+/**
+ * Register.jsx — New-user registration form
+ *
+ * Collects name, email, password, phone and role.  If the user
+ * selects “doctor”, extra fields for specialization and license
+ * number appear.  Admin role requires a secret key.
+ */
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, User, Phone, UserPlus, AlertCircle } from "lucide-react";
@@ -82,7 +90,6 @@ export default function Register() {
         error.response?.data?.message ||
         "Registration failed. Please try again.";
       setError(errorMessage);
-      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -257,8 +264,8 @@ export default function Register() {
                         passwordStrength === "weak"
                           ? "w-1/3 bg-red-500"
                           : passwordStrength === "medium"
-                          ? "w-2/3 bg-yellow-500"
-                          : "w-full bg-green-500"
+                            ? "w-2/3 bg-yellow-500"
+                            : "w-full bg-green-500"
                       }`}
                     />
                   </div>
@@ -267,15 +274,15 @@ export default function Register() {
                       passwordStrength === "weak"
                         ? "text-red-600"
                         : passwordStrength === "medium"
-                        ? "text-yellow-600"
-                        : "text-green-600"
+                          ? "text-yellow-600"
+                          : "text-green-600"
                     }`}
                   >
                     {passwordStrength === "weak"
                       ? "Weak"
                       : passwordStrength === "medium"
-                      ? "Medium"
-                      : "Strong"}
+                        ? "Medium"
+                        : "Strong"}
                   </span>
                 </div>
               )}
