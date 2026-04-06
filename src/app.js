@@ -40,7 +40,12 @@ const app = express();
 const server = http.createServer(app);
 
 // ── Security headers via Helmet ──────────────────────────────────────
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Vite injects inline scripts/styles; CSP would block them
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 
 // ── CORS ─────────────────────────────────────────────────────────────
 // Allow the React dev-server (port 3000) to talk to the API.
@@ -110,7 +115,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(clientBuildPath));
 
   // All non-API routes serve the React app (SPA client-side routing)
-  app.get(/^(?!\/api).*/, (_req, res) => {
+  app.get("*", (_req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 } else {
