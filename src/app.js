@@ -10,6 +10,7 @@
 
 require("dotenv").config();
 
+const path = require("path");
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -44,9 +45,20 @@ app.use(helmet());
 // ── CORS ─────────────────────────────────────────────────────────────
 // Allow the React dev-server (port 3000) to talk to the API.
 // In production, lock this down to your actual domain.
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, same-origin in prod)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true, // required so cookies are sent cross-origin
   }),
 );
@@ -92,20 +104,31 @@ app.use("/api/analytics", analyticsRoutes);
 // ── Swagger docs (served at /api-docs) ───────────────────────────────
 setupSwagger(app);
 
-// ── Welcome route ────────────────────────────────────────────────────
-app.get("/", (_req, res) => {
-  res.json({
-    success: true,
-    message: "Welcome to ClinicHub API",
-    version: "1.0.0",
-    documentation: "/api-docs",
-  });
-});
+// ── Serve React frontend in production ────────────────────────────────
+if (process.env.NODE_ENV === "production") {
+  const clientBuildPath = path.join(__dirname, "..", "client", "dist");
+  app.use(express.static(clientBuildPath));
 
-// ── 404 catch-all ────────────────────────────────────────────────────
-app.use("*", (_req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
-});
+  // All non-API routes serve the React app (SPA client-side routing)
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+} else {
+  // ── Welcome route (dev only) ─────────────────────────────────────
+  app.get("/", (_req, res) => {
+    res.json({
+      success: true,
+      message: "Welcome to ClinicHub API",
+      version: "1.0.0",
+      documentation: "/api-docs",
+    });
+  });
+
+  // ── 404 catch-all ──────────────────────────────────────────────────
+  app.use("*", (_req, res) => {
+    res.status(404).json({ success: false, message: "Route not found" });
+  });
+}
 
 // ── Global error handler (must be the *last* middleware) ─────────────
 app.use(errorHandler);

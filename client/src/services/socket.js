@@ -22,7 +22,7 @@ let socket = null;
  */
 export const initSocket = () => {
   if (!socket) {
-    socket = io("http://localhost:6000", {
+    socket = io(window.location.origin, {
       withCredentials: true,
       // Polling first so the browser sends the auth cookie during the HTTP handshake
       transports: ["polling", "websocket"],

@@ -4,14 +4,18 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy root package files and install backend dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci --only=production
 
-# Copy application files
-COPY . .
+# Copy client package files and install + build frontend
+COPY client/package*.json ./client/
+RUN cd client && npm ci
+COPY client/ ./client/
+RUN cd client && npm run build
+
+# Copy backend application files
+COPY src/ ./src/
 
 # Create logs directory
 RUN mkdir -p logs
