@@ -156,20 +156,26 @@ app.set("io", io);
 // ── Start server ─────────────────────────────────────────────────────
 const PORT = process.env.PORT || 6000;
 
+// Start HTTP server immediately so the React app is always served.
+// MongoDB connection happens after — if it fails, API routes return 503
+// but the frontend still loads (users see login page, not a white screen).
+server.listen(PORT, () => {
+  logger.info("=================================");
+  logger.info(`Server running on port ${PORT}`);
+  logger.info(`API Docs: http://localhost:${PORT}/api-docs`);
+  logger.info(`ClinicHub API v1.0.0`);
+  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+  logger.info("=================================");
+});
+
 connectDB()
   .then(() => {
-    server.listen(PORT, () => {
-      logger.info("=================================");
-      logger.info(`Server running on port ${PORT}`);
-      logger.info(`API Docs: http://localhost:${PORT}/api-docs`);
-      logger.info(`ClinicHub API v1.0.0`);
-      logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
-      logger.info("=================================");
-    });
+    logger.info("MongoDB connected — all systems operational");
   })
   .catch((error) => {
-    logger.error("Failed to start server:", error);
-    process.exit(1);
+    logger.error("MongoDB connection failed:", error.message);
+    logger.error("API routes will return 503 until the database is reachable.");
+    // Do NOT exit — keep serving the frontend so the issue is visible
   });
 
 // ── Graceful shutdown helpers ────────────────────────────────────────
