@@ -4,21 +4,13 @@ services:
     name: clinichub
     runtime: node
     plan: free
-    buildCommand: npm install && cd client && npm install && npm run build
-    startCommand: npm start
+    # NODE_ENV is NOT set here so devDeps (Vite) are installed during build
+    buildCommand: npm install && cd client && npm install --include=dev && npm run build
+    startCommand: NODE_ENV=production npm start
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 6000
       - key: MONGODB_URI
         sync: false # Set manually in Render dashboard
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRE
         value: 7d
-      - key: CLIENT_URL
-        fromService:
-          name: clinichub
-          type: web
-          property: url
