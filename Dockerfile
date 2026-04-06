@@ -1,18 +1,30 @@
-# Use Node.js LTS version
-FROM node:22-alpine
+# ── Stage 1: Build the React frontend ────────────────────────────────
+FROM node:22-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install backend dependencies only
+# Install client dependencies (includes Vite, Tailwind, Rollup — all Alpine-native)
+COPY client/package*.json ./client/
+RUN cd client && npm ci
+
+# Copy all client source files and build
+COPY client/ ./client/
+RUN cd client && npm run build
+
+# ── Stage 2: Production server ────────────────────────────────────────
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install backend production dependencies only
 COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy backend source
 COPY src/ ./src/
 
-# Copy pre-built React frontend (committed to repo)
-COPY client/dist/ ./client/dist/
+# Copy the freshly built React app from the builder stage
+COPY --from=builder /app/client/dist/ ./client/dist/
 
 # Create logs directory
 RUN mkdir -p logs
