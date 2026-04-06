@@ -2,11 +2,9 @@ services:
   # ClinicHub Web Service (API + React frontend)
   - type: web
     name: clinichub
-    runtime: node
+    runtime: docker
     plan: free
-    # client/dist is pre-built and committed to the repo — no build step needed
-    buildCommand: npm install --only=production
-    startCommand: NODE_ENV=production npm start
+    # Dockerfile handles the build — client/dist is pre-built and committed
     envVars:
       - key: MONGODB_URI
         sync: false # Set manually in Render dashboard
@@ -14,3 +12,7 @@ services:
         generateValue: true
       - key: JWT_EXPIRE
         value: 7d
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        sync: false # Set to your Render URL, e.g. https://clinic-hub-lcpq.onrender.com

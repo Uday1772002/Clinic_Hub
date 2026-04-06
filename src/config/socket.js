@@ -13,9 +13,13 @@ const logger = require("../utils/logger");
 
 const initializeSocket = (server) => {
   // Allow the React dev-server origin for WebSocket connections too
+  const allowedOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(",")
+    : ["http://localhost:3000"];
+
   const io = socketIo(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      origin: allowedOrigins,
       credentials: true,
     },
   });
