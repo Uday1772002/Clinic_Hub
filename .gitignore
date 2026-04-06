@@ -6,7 +6,8 @@ node_modules/
 .env.local
 .env.*.local
 
-# Build & output
+# Build & output — exclude root dist but NOT client/dist (pre-built for deployment)
+!client/dist/
 dist/
 build/
 coverage/

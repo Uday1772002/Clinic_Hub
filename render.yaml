@@ -4,8 +4,8 @@ services:
     name: clinichub
     runtime: node
     plan: free
-    # NODE_ENV is NOT set here so devDeps (Vite) are installed during build
-    buildCommand: npm install && cd client && npm install --include=dev && npm run build
+    # client/dist is pre-built and committed to the repo — no build step needed
+    buildCommand: npm install --only=production
     startCommand: NODE_ENV=production npm start
     envVars:
       - key: MONGODB_URI

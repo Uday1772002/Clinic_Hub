@@ -8,7 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist is committed to the repo so deployment never depends on a build step
+# dist
 dist-ssr
 *.local
 

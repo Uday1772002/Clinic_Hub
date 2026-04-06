@@ -4,18 +4,15 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy root package files and install backend dependencies
+# Install backend dependencies only
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy client package files and install + build frontend
-COPY client/package*.json ./client/
-RUN cd client && npm ci
-COPY client/ ./client/
-RUN cd client && npm run build
-
-# Copy backend application files
+# Copy backend source
 COPY src/ ./src/
+
+# Copy pre-built React frontend (committed to repo)
+COPY client/dist/ ./client/dist/
 
 # Create logs directory
 RUN mkdir -p logs
