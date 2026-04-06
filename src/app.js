@@ -112,9 +112,20 @@ setupSwagger(app);
 // ── Serve React frontend in production ────────────────────────────────
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "..", "client", "dist");
+  const fs = require("fs");
+
+  if (!fs.existsSync(clientBuildPath)) {
+    logger.error(
+      `[STATIC] Client build not found at: ${clientBuildPath}. ` +
+        "Run 'cd client && npm run build' inside the container.",
+    );
+  } else {
+    logger.info(`[STATIC] Serving frontend from: ${clientBuildPath}`);
+  }
+
   app.use(express.static(clientBuildPath));
 
-  // All non-API routes serve the React app (SPA client-side routing)
+  // All unmatched routes serve the React app (SPA client-side routing)
   app.get("*", (_req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });

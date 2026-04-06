@@ -1,8 +1,14 @@
-# Node modules
+# Node modules — MUST exclude client/node_modules separately or Docker
+# copies your macOS binaries into the Linux container and vite build breaks
 node_modules/
+client/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Stale local build artifacts — always built fresh inside Docker
+client/dist/
+dist/
 
 # Environment variables
 .env
@@ -16,6 +22,10 @@ logs/
 # Testing
 coverage/
 .nyc_output/
+
+# Git
+.git/
+.gitignore
 
 # IDE
 .vscode/
