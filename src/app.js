@@ -121,6 +121,15 @@ if (process.env.NODE_ENV === "production") {
     );
   } else {
     logger.info(`[STATIC] Serving frontend from: ${clientBuildPath}`);
+    // List all files in dist so we can verify in deploy logs
+    const listFiles = (dir, prefix = "") => {
+      fs.readdirSync(dir).forEach((f) => {
+        const full = path.join(dir, f);
+        if (fs.statSync(full).isDirectory()) listFiles(full, prefix + f + "/");
+        else logger.info(`[STATIC]   ${prefix}${f}`);
+      });
+    };
+    listFiles(clientBuildPath);
   }
 
   app.use(express.static(clientBuildPath));

@@ -35,10 +35,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Build
-dist/
-build/
-
 # Reports
 reports/
 
