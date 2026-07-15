@@ -496,24 +496,6 @@ Response:
 }
 ```
 
-### Get Analytics
-
-```bash
-GET /api/analytics/appointments?startDate=2024-01-01&endDate=2024-12-31
-Cookie: token=<your_jwt_token>
-
-Response:
-{
-  "success": true,
-  "data": {
-    "statusBreakdown": [...],
-    "appointmentsPerDoctor": [...],
-    "dailyTrends": [...],
-    "peakHours": [...],
-    "commonReasons": [...]
-  }
-}
-```
 
 ## ⚡ Performance Tips
 
